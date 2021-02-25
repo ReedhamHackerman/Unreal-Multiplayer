@@ -6,6 +6,7 @@
 #include "UnrealMultiplayer/UnrealMultiplayerCharacter.h"
 #include "Components/DecalComponent.h"
 #include "UnrealMultiplayer//UnrealMultiplayerGameMode.h"
+#include "kismet/GameplayStatics.h"
 // Sets default values
 AFPSExtractionZone::AFPSExtractionZone()
 {
@@ -44,16 +45,22 @@ void AFPSExtractionZone::NotifyActorBeginOverlap(AActor* OtherActor)
 	Super::NotifyActorBeginOverlap(OtherActor);
 	AUnrealMultiplayerCharacter* myCharacter = Cast<AUnrealMultiplayerCharacter>(OtherActor);
 	
-	if (myCharacter && myCharacter->IsCarryingObjective)
+	if (myCharacter == nullptr )
 	{
-		
+		return;	
+	}
+	if (myCharacter->IsCarryingObjective)
+	{
 		AUnrealMultiplayerGameMode* ugm = Cast<AUnrealMultiplayerGameMode>(myCharacter->GetWorld()->GetAuthGameMode());
-		
+
 		if (ugm)
 		{
 			ugm->CompleteMission(myCharacter);
 		}
-		
+	}
+	else
+	{
+		UGameplayStatics::PlaySound2D(this, ObjectiveMissingSound);
 	}
 	
 }
