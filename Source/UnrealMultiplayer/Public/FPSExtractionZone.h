@@ -7,7 +7,7 @@
 #include "FPSExtractionZone.generated.h"
 
 class UBoxComponent;
-
+class UDecalComponent; 
 
 UCLASS()
 class UNREALMULTIPLAYER_API AFPSExtractionZone : public AActor
@@ -24,7 +24,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	UBoxComponent* OverlapComp;
 
-
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	UDecalComponent* DecalComp;
 
 	/*UFUNCTION()
 	void HandleOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool FromSweep, const FHitResult& SweepResult);*/

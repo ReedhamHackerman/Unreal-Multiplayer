@@ -4,6 +4,7 @@
 #include "FPSExtractionZone.h"
 #include "Components/BoxComponent.h"
 #include "UnrealMultiplayer/UnrealMultiplayerCharacter.h"
+#include "Components/DecalComponent.h"
 // Sets default values
 AFPSExtractionZone::AFPSExtractionZone()
 {
@@ -17,7 +18,9 @@ AFPSExtractionZone::AFPSExtractionZone()
 
 	OverlapComp->SetHiddenInGame(false);
 	
-	
+	DecalComp = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp"));
+	DecalComp->DecalSize = FVector(200.0f);
+	DecalComp->SetupAttachment(RootComponent);
 	
 
 }
