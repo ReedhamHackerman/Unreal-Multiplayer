@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "UnrealMultiplayer/UnrealMultiplayerCharacter.h"
 #include "Components/DecalComponent.h"
+#include "UnrealMultiplayer//UnrealMultiplayerGameMode.h"
 // Sets default values
 AFPSExtractionZone::AFPSExtractionZone()
 {
@@ -42,9 +43,17 @@ void AFPSExtractionZone::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
 	AUnrealMultiplayerCharacter* myCharacter = Cast<AUnrealMultiplayerCharacter>(OtherActor);
-	if (myCharacter)
+	
+	if (myCharacter && myCharacter->IsCarryingObjective)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Overlapped with extraction zone!"));
+		
+		AUnrealMultiplayerGameMode* ugm = Cast<AUnrealMultiplayerGameMode>(myCharacter->GetWorld()->GetAuthGameMode());
+		
+		if (ugm)
+		{
+			ugm->CompleteMission(myCharacter);
+		}
+		
 	}
 	
 }

@@ -13,6 +13,11 @@ class AUnrealMultiplayerGameMode : public AGameModeBase
 
 public:
 	AUnrealMultiplayerGameMode();
+
+	void CompleteMission(APawn* instigatorPawn);
+
+	UFUNCTION(BlueprintImplementableEvent,Category ="GameMode")
+	void OnMissionComplete(APawn* instigatorpawn);
 };
 
 

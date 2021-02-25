@@ -15,3 +15,13 @@ AUnrealMultiplayerGameMode::AUnrealMultiplayerGameMode()
 	// use our custom HUD class
 	HUDClass = AUnrealMultiplayerHUD::StaticClass();
 }
+
+void AUnrealMultiplayerGameMode::CompleteMission(APawn* instigatorPawn)
+{
+	if (instigatorPawn)
+	{
+		instigatorPawn->DisableInput(nullptr);
+	}
+	
+	OnMissionComplete(instigatorPawn);
+}
