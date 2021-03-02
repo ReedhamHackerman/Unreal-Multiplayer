@@ -4,6 +4,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/Actor.h"
 AUnrealMultiplayerProjectile::AUnrealMultiplayerProjectile() 
 {
 	
@@ -39,7 +40,9 @@ void AUnrealMultiplayerProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* O
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 
-		Destroy();
+		
 	}
-   UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),ExplosionEffect,GetActorLocation());
+	MakeNoise(1.0f,nullptr); 
+    UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),ExplosionEffect,GetActorLocation());
+    Destroy();
 }

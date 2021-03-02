@@ -2,20 +2,45 @@
 
 
 #include "FPSAiCharacter.h"
-
+#include "perception/PawnSensingComponent.h"
+#include "DrawDebugHelpers.h"
 // Sets default values
 AFPSAiCharacter::AFPSAiCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
+	
+	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
+	
+	
 }
 
 // Called when the game starts or when spawned
 void AFPSAiCharacter::BeginPlay()
 {
+	
+	PawnSensingComp->OnSeePawn.AddDynamic(this, &AFPSAiCharacter::OnPawnSeen);
+	PawnSensingComp->OnHearNoise.AddDynamic(this, &AFPSAiCharacter::OnHearSound);
 	Super::BeginPlay();
 	
+}
+
+void AFPSAiCharacter::OnPawnSeen(APawn* Pawn)
+{
+	if (Pawn==nullptr)
+	{
+		return;
+	}
+	DrawDebugSphere(GetWorld(), Pawn->GetActorLocation(), 32.0f, 12, FColor::Yellow, false, 10.0f);
+}
+
+void AFPSAiCharacter::OnHearSound(APawn * NoiseInstigator, const FVector & Location, float Volume)
+{
+	DrawDebugSphere(GetWorld(), NoiseInstigator->GetActorLocation(), 32.0f, 12, FColor::Red, false, 10.0f);
+	FVector Direction = Location - GetActorLocation();
+	Direction.Normalize();
+	FRotator NewLookAt = FRotationMatrix::MakeFromX(Direction).Rotator();
+	NewLookAt.Pitch = 0.0f;
+	NewLookAt.Roll = 0.0f;
+	SetActorRotation(NewLookAt*rotationSpeed);
 }
 
 // Called every frame
@@ -25,10 +50,4 @@ void AFPSAiCharacter::Tick(float DeltaTime)
 
 }
 
-// Called to bind functionality to input
-void AFPSAiCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
 

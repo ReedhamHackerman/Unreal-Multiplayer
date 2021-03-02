@@ -88,6 +88,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "GamePlay")
 	bool IsCarryingObjective;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+    UPawnNoiseEmitterComponent* PawnNoiseEmitterComp;
 protected:
 	
 	/** Fires a projectile. */

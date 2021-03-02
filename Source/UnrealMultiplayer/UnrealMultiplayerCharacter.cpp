@@ -11,7 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
-
+#include "components/PawnNoiseEmitterComponent.h"
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,6 +80,7 @@ AUnrealMultiplayerCharacter::AUnrealMultiplayerCharacter()
 	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));
 	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));		// Counteract the rotation of the VR gun model.
 
+	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitterComp"));
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
 }
@@ -161,13 +162,13 @@ void AUnrealMultiplayerCharacter::OnFire()
 				//Set Spawn Collision Handling Override
 				FActorSpawnParameters ActorSpawnParams;
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
+				ActorSpawnParams.Instigator = this;
 				// spawn the projectile at the muzzle
 				World->SpawnActor<AUnrealMultiplayerProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 			}
 		}
 	}
-
+	
 	// try and play the sound if specified
 	if (FireSound != nullptr)
 	{
