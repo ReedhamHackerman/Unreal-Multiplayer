@@ -16,7 +16,7 @@ AUnrealMultiplayerGameMode::AUnrealMultiplayerGameMode()
 	HUDClass = AUnrealMultiplayerHUD::StaticClass();
 }
 
-void AUnrealMultiplayerGameMode::CompleteMission(APawn* instigatorPawn)
+void AUnrealMultiplayerGameMode::CompleteMission(APawn* instigatorPawn,bool IsMissionSuccess)
 {
 	if (instigatorPawn)
 	{
@@ -47,7 +47,7 @@ void AUnrealMultiplayerGameMode::CompleteMission(APawn* instigatorPawn)
 		
 	}
 	
-	OnMissionComplete(instigatorPawn);
+	OnMissionComplete(instigatorPawn,IsMissionSuccess);
 
 	
 }

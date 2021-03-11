@@ -30,6 +30,8 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, Category = "Rotation")
 	float rotationSpeed;
+
+	FRotator OrignalRotation;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

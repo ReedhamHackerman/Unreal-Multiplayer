@@ -4,6 +4,7 @@
 #include "FPSAiCharacter.h"
 #include "perception/PawnSensingComponent.h"
 #include "DrawDebugHelpers.h"
+#include "UnrealMultiplayer/UnrealMultiplayerGameMode.h"
 // Sets default values
 AFPSAiCharacter::AFPSAiCharacter()
 {
@@ -16,7 +17,7 @@ AFPSAiCharacter::AFPSAiCharacter()
 // Called when the game starts or when spawned
 void AFPSAiCharacter::BeginPlay()
 {
-	
+	OrignalRotation = GetActorRotation();
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &AFPSAiCharacter::OnPawnSeen);
 	PawnSensingComp->OnHearNoise.AddDynamic(this, &AFPSAiCharacter::OnHearSound);
 	Super::BeginPlay();
@@ -30,6 +31,11 @@ void AFPSAiCharacter::OnPawnSeen(APawn* Pawn)
 		return;
 	}
 	DrawDebugSphere(GetWorld(), Pawn->GetActorLocation(), 32.0f, 12, FColor::Yellow, false, 10.0f);
+	AUnrealMultiplayerGameMode* ugm = Cast<AUnrealMultiplayerGameMode>(Pawn->GetWorld()->GetAuthGameMode());
+	if (ugm)
+	{
+		ugm->CompleteMission(Pawn, false);
+	}
 }
 
 void AFPSAiCharacter::OnHearSound(APawn * NoiseInstigator, const FVector & Location, float Volume)

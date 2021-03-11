@@ -14,10 +14,10 @@ class AUnrealMultiplayerGameMode : public AGameModeBase
 public:
 	AUnrealMultiplayerGameMode();
 
-	void CompleteMission(APawn* instigatorPawn);
+	void CompleteMission(APawn* instigatorPawn, bool IsMissionSuccess);
 
 	UFUNCTION(BlueprintImplementableEvent,Category ="GameMode")
-	void OnMissionComplete(APawn* instigatorpawn);
+	void OnMissionComplete(APawn* instigatorpawn, bool IsMissionSuccess);
 protected:
 	UPROPERTY(EditDefaultsOnly,Category="Spectating")
 	TSubclassOf<AActor> SpectatingViewPoint;

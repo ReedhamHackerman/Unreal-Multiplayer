@@ -55,7 +55,7 @@ void AFPSExtractionZone::NotifyActorBeginOverlap(AActor* OtherActor)
 
 		if (ugm)
 		{
-			ugm->CompleteMission(myCharacter);
+			ugm->CompleteMission(myCharacter,true);
 		}
 	}
 	else
