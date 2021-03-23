@@ -5,19 +5,21 @@
 #include "perception/PawnSensingComponent.h"
 #include "DrawDebugHelpers.h"
 #include "UnrealMultiplayer/UnrealMultiplayerGameMode.h"
+#include "Engine/EngineTypes.h"
 // Sets default values
 AFPSAiCharacter::AFPSAiCharacter()
 {
 	
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
-	
+	AIGuardState = EAIState::Idle;
+	OrignalRotation = GetActorRotation();
 	
 }
 
 // Called when the game starts or when spawned
 void AFPSAiCharacter::BeginPlay()
 {
-	OrignalRotation = GetActorRotation();
+	
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &AFPSAiCharacter::OnPawnSeen);
 	PawnSensingComp->OnHearNoise.AddDynamic(this, &AFPSAiCharacter::OnHearSound);
 	Super::BeginPlay();
@@ -36,10 +38,16 @@ void AFPSAiCharacter::OnPawnSeen(APawn* Pawn)
 	{
 		ugm->CompleteMission(Pawn, false);
 	}
+	SetGuardState(EAIState::Alert);
 }
 
 void AFPSAiCharacter::OnHearSound(APawn * NoiseInstigator, const FVector & Location, float Volume)
 {
+	if (AIGuardState == EAIState::Alert)
+	{
+		return;
+	}
+
 	DrawDebugSphere(GetWorld(), NoiseInstigator->GetActorLocation(), 32.0f, 12, FColor::Red, false, 10.0f);
 	FVector Direction = Location - GetActorLocation();
 	Direction.Normalize();
@@ -47,6 +55,30 @@ void AFPSAiCharacter::OnHearSound(APawn * NoiseInstigator, const FVector & Locat
 	NewLookAt.Pitch = 0.0f;
 	NewLookAt.Roll = 0.0f;
 	SetActorRotation(NewLookAt*rotationSpeed);
+	GetWorldTimerManager().ClearTimer(TimerHandle_ResetOrientation);
+	GetWorldTimerManager().SetTimer(TimerHandle_ResetOrientation, this, &AFPSAiCharacter::ResetOrientation, 3.0f);
+	SetGuardState(EAIState::Suspicious);
+}
+
+void AFPSAiCharacter::SetGuardState(EAIState NewState)
+{
+
+	if (NewState == AIGuardState)
+	{
+		return;
+	}
+	AIGuardState = NewState;
+	OnstateChange(AIGuardState);
+}
+
+void AFPSAiCharacter::ResetOrientation()
+{
+	if (AIGuardState==EAIState::Alert)
+	{
+		return;
+	}
+	SetActorRotation(OrignalRotation);
+	SetGuardState(EAIState::Idle);
 }
 
 // Called every frame

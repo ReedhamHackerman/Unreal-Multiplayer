@@ -5,7 +5,16 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "FPSAiCharacter.generated.h"
+
 class UPawnSensingComponent;
+UENUM(BlueprintType)
+enum class EAIState : uint8
+{
+	Idle,
+	Suspicious,
+	Alert
+};
+
 UCLASS()
 class UNREALMULTIPLAYER_API AFPSAiCharacter : public ACharacter
 {
@@ -30,6 +39,15 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, Category = "Rotation")
 	float rotationSpeed;
+
+	EAIState AIGuardState;
+	void SetGuardState(EAIState NewState);
+
+	FTimerHandle TimerHandle_ResetOrientation;
+	UFUNCTION(BlueprintImplementableEvent, Category = "AI")
+	void OnstateChange(EAIState SetState);
+
+	void ResetOrientation();
 
 	FRotator OrignalRotation;
 public:	
