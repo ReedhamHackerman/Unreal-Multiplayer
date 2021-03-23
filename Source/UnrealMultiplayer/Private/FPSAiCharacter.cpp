@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "UnrealMultiplayer/UnrealMultiplayerGameMode.h"
 #include "Engine/EngineTypes.h"
+#include "NavigationSystem.h"
 // Sets default values
 AFPSAiCharacter::AFPSAiCharacter()
 {
@@ -13,6 +14,10 @@ AFPSAiCharacter::AFPSAiCharacter()
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
 	AIGuardState = EAIState::Idle;
 	OrignalRotation = GetActorRotation();
+	if (bPatrol)
+	{
+		MoveToNextPatrolPoint();
+	}
 	
 }
 
@@ -39,6 +44,12 @@ void AFPSAiCharacter::OnPawnSeen(APawn* Pawn)
 		ugm->CompleteMission(Pawn, false);
 	}
 	SetGuardState(EAIState::Alert);
+
+	AController* controler = GetController();
+	if (controler)
+	{
+		controler->StopMovement();
+	}
 }
 
 void AFPSAiCharacter::OnHearSound(APawn * NoiseInstigator, const FVector & Location, float Volume)
@@ -79,12 +90,39 @@ void AFPSAiCharacter::ResetOrientation()
 	}
 	SetActorRotation(OrignalRotation);
 	SetGuardState(EAIState::Idle);
+	if (bPatrol)
+	{
+		MoveToNextPatrolPoint();
+	}
+}
+
+void AFPSAiCharacter::MoveToNextPatrolPoint()
+{
+	if (CurrentPatrolPoint==nullptr||CurrentPatrolPoint==SecondPatrolPoint)
+	{
+		CurrentPatrolPoint = FirstPatrolPoint;
+	}
+	else
+	{
+		CurrentPatrolPoint = SecondPatrolPoint;
+	}
+	
+	UNavigationSystemV1::SimpleMoveToActor(GetController(), CurrentPatrolPoint);
 }
 
 // Called every frame
 void AFPSAiCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (CurrentPatrolPoint)
+	{
+		FVector Delta = GetActorLocation() - CurrentPatrolPoint->GetActorLocation();
+		float DistanceToAGoal = Delta.Size();
+		if (DistanceToAGoal<50)
+		{
+			MoveToNextPatrolPoint();
+		}
+	}
 
 }
 
