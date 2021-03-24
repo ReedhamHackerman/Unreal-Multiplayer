@@ -31,6 +31,7 @@ AUnrealMultiplayerProjectile::AUnrealMultiplayerProjectile()
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
+	
 }
 
 void AUnrealMultiplayerProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -39,10 +40,22 @@ void AUnrealMultiplayerProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* O
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
-
-		
 	}
-	MakeNoise(1.0f,nullptr); 
+
+	if (HasAuthority())
+	{
+		MakeNoise(1.0f, nullptr);
+		Destroy();
+	}
+	
+	
     UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),ExplosionEffect,GetActorLocation());
-    Destroy();
+   
+}
+
+void AUnrealMultiplayerProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+	SetReplicates(true);
+	SetReplicatingMovement(true);
 }

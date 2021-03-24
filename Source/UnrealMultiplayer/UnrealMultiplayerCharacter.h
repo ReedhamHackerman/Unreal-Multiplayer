@@ -86,13 +86,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
 
-	UPROPERTY(BlueprintReadOnly, Category = "GamePlay")
+	UPROPERTY(VisibleAnywhere, Category = "GamePlay")
 	bool IsCarryingObjective;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     UPawnNoiseEmitterComponent* PawnNoiseEmitterComp;
 protected:
-	
+
+	/*HandleServer Side Calls*/
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerFire();
 	/** Fires a projectile. */
 	void OnFire();
 
