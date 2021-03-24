@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "UnrealMultiplayerCharacter.generated.h"
 
@@ -137,6 +139,20 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
+
+
+	virtual void Tick(float DeltaSeconds) override
+	{
+		Super::Tick(DeltaSeconds);
+
+		if (!IsLocallyControlled())
+		{
+			FRotator NewRotator = GetFirstPersonCameraComponent()->GetRelativeRotation();
+			NewRotator.Pitch = RemoteViewPitch * 360.0f / 255.0f;
+			GetFirstPersonCameraComponent()->SetRelativeRotation(NewRotator);
+		}
+		
+	}
 
 	/* 
 	 * Configures input for touchscreen devices if there is a valid touch interface for doing so 
