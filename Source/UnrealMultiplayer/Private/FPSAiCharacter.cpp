@@ -7,10 +7,11 @@
 #include "UnrealMultiplayer/UnrealMultiplayerGameMode.h"
 #include "Engine/EngineTypes.h"
 #include "NavigationSystem.h"
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 AFPSAiCharacter::AFPSAiCharacter()
 {
-	
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
 	AIGuardState = EAIState::Idle;
 	OrignalRotation = GetActorRotation();
@@ -18,22 +19,19 @@ AFPSAiCharacter::AFPSAiCharacter()
 	{
 		MoveToNextPatrolPoint();
 	}
-	
 }
 
 // Called when the game starts or when spawned
 void AFPSAiCharacter::BeginPlay()
 {
-	
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &AFPSAiCharacter::OnPawnSeen);
 	PawnSensingComp->OnHearNoise.AddDynamic(this, &AFPSAiCharacter::OnHearSound);
 	Super::BeginPlay();
-	
 }
 
 void AFPSAiCharacter::OnPawnSeen(APawn* Pawn)
 {
-	if (Pawn==nullptr)
+	if (Pawn == nullptr)
 	{
 		return;
 	}
@@ -52,7 +50,7 @@ void AFPSAiCharacter::OnPawnSeen(APawn* Pawn)
 	}
 }
 
-void AFPSAiCharacter::OnHearSound(APawn * NoiseInstigator, const FVector & Location, float Volume)
+void AFPSAiCharacter::OnHearSound(APawn* NoiseInstigator, const FVector& Location, float Volume)
 {
 	if (AIGuardState == EAIState::Alert)
 	{
@@ -65,26 +63,30 @@ void AFPSAiCharacter::OnHearSound(APawn * NoiseInstigator, const FVector & Locat
 	FRotator NewLookAt = FRotationMatrix::MakeFromX(Direction).Rotator();
 	NewLookAt.Pitch = 0.0f;
 	NewLookAt.Roll = 0.0f;
-	SetActorRotation(NewLookAt*rotationSpeed);
+	SetActorRotation(NewLookAt * rotationSpeed);
 	GetWorldTimerManager().ClearTimer(TimerHandle_ResetOrientation);
 	GetWorldTimerManager().SetTimer(TimerHandle_ResetOrientation, this, &AFPSAiCharacter::ResetOrientation, 3.0f);
 	SetGuardState(EAIState::Suspicious);
 }
 
+void AFPSAiCharacter::OnRep_GuardState()
+{
+	OnstateChange(AIGuardState);
+}
+
 void AFPSAiCharacter::SetGuardState(EAIState NewState)
 {
-
 	if (NewState == AIGuardState)
 	{
 		return;
 	}
 	AIGuardState = NewState;
-	OnstateChange(AIGuardState);
+	OnRep_GuardState();
 }
 
 void AFPSAiCharacter::ResetOrientation()
 {
-	if (AIGuardState==EAIState::Alert)
+	if (AIGuardState == EAIState::Alert)
 	{
 		return;
 	}
@@ -98,7 +100,7 @@ void AFPSAiCharacter::ResetOrientation()
 
 void AFPSAiCharacter::MoveToNextPatrolPoint()
 {
-	if (CurrentPatrolPoint==nullptr||CurrentPatrolPoint==SecondPatrolPoint)
+	if (CurrentPatrolPoint == nullptr || CurrentPatrolPoint == SecondPatrolPoint)
 	{
 		CurrentPatrolPoint = FirstPatrolPoint;
 	}
@@ -106,7 +108,7 @@ void AFPSAiCharacter::MoveToNextPatrolPoint()
 	{
 		CurrentPatrolPoint = SecondPatrolPoint;
 	}
-	
+
 	UNavigationSystemV1::SimpleMoveToActor(GetController(), CurrentPatrolPoint);
 }
 
@@ -118,12 +120,17 @@ void AFPSAiCharacter::Tick(float DeltaTime)
 	{
 		FVector Delta = GetActorLocation() - CurrentPatrolPoint->GetActorLocation();
 		float DistanceToAGoal = Delta.Size();
-		if (DistanceToAGoal<50)
+		if (DistanceToAGoal < 50)
 		{
 			MoveToNextPatrolPoint();
 		}
 	}
-
 }
 
 
+void AFPSAiCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFPSAiCharacter, AIGuardState);
+}

@@ -57,7 +57,7 @@ public:
 	AUnrealMultiplayerCharacter();
 
 protected:
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -92,7 +92,7 @@ public:
 	bool IsCarryingObjective;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-    UPawnNoiseEmitterComponent* PawnNoiseEmitterComp;
+	UPawnNoiseEmitterComponent* PawnNoiseEmitterComp;
 protected:
 
 	/*HandleServer Side Calls*/
@@ -124,17 +124,23 @@ protected:
 
 	struct TouchData
 	{
-		TouchData() { bIsPressed = false;Location=FVector::ZeroVector;}
+		TouchData()
+		{
+			bIsPressed = false;
+			Location = FVector::ZeroVector;
+		}
+
 		bool bIsPressed;
 		ETouchIndex::Type FingerIndex;
 		FVector Location;
 		bool bMoved;
 	};
+
 	void BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
 	void EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
 	void TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location);
-	TouchData	TouchItem;
-	
+	TouchData TouchItem;
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -151,7 +157,6 @@ protected:
 			NewRotator.Pitch = RemoteViewPitch * 360.0f / 255.0f;
 			GetFirstPersonCameraComponent()->SetRelativeRotation(NewRotator);
 		}
-		
 	}
 
 	/* 
@@ -167,6 +172,4 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
 };
-

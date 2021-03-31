@@ -12,7 +12,7 @@
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "components/PawnNoiseEmitterComponent.h"
-
+#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -45,7 +45,7 @@ AUnrealMultiplayerCharacter::AUnrealMultiplayerCharacter()
 
 	// Create a gun mesh component
 	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
+	FP_Gun->SetOnlyOwnerSee(false); // otherwise won't be visible in the multiplayer
 	FP_Gun->bCastDynamicShadow = false;
 	FP_Gun->CastShadow = false;
 	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
@@ -71,7 +71,7 @@ AUnrealMultiplayerCharacter::AUnrealMultiplayerCharacter()
 	// Create a gun and attach it to the right-hand VR controller.
 	// Create a gun mesh component
 	VR_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VR_Gun"));
-	VR_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
+	VR_Gun->SetOnlyOwnerSee(false); // otherwise won't be visible in the multiplayer
 	VR_Gun->bCastDynamicShadow = false;
 	VR_Gun->CastShadow = false;
 	VR_Gun->SetupAttachment(R_MotionController);
@@ -80,7 +80,7 @@ AUnrealMultiplayerCharacter::AUnrealMultiplayerCharacter()
 	VR_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("VR_MuzzleLocation"));
 	VR_MuzzleLocation->SetupAttachment(VR_Gun);
 	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));
-	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));		// Counteract the rotation of the VR gun model.
+	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f)); // Counteract the rotation of the VR gun model.
 
 	PawnNoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitterComp"));
 	// Uncomment the following line to turn motion controllers on by default:
@@ -93,7 +93,8 @@ void AUnrealMultiplayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
-	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true),
+	                          TEXT("GripPoint"));
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
@@ -142,10 +143,8 @@ void AUnrealMultiplayerCharacter::SetupPlayerInputComponent(class UInputComponen
 }
 
 
-
 void AUnrealMultiplayerCharacter::OnFire()
 {
-	
 	// try and fire a projectile
 
 	ServerFire();
@@ -176,8 +175,8 @@ void AUnrealMultiplayerCharacter::OnFire()
 	//		//}
 
 	//	}
- //	}
-	
+	//	}
+
 	// try and play the sound if specified
 	if (FireSound != nullptr)
 	{
@@ -298,45 +297,55 @@ bool AUnrealMultiplayerCharacter::EnableTouchscreenMovement(class UInputComponen
 {
 	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
 	{
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AUnrealMultiplayerCharacter::BeginTouch);
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AUnrealMultiplayerCharacter::EndTouch);
+		PlayerInputComponent->BindTouch(IE_Pressed, this, &AUnrealMultiplayerCharacter::BeginTouch);
+		PlayerInputComponent->BindTouch(IE_Released, this, &AUnrealMultiplayerCharacter::EndTouch);
 
 		//Commenting this out to be more consistent with FPS BP template.
 		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AUnrealMultiplayerCharacter::TouchUpdate);
 		return true;
 	}
-	
+
 	return false;
 }
+
 void AUnrealMultiplayerCharacter::ServerFire_Implementation()
 {
 	if (ProjectileClass)
 	{
-	
-		/*	if (bUsingMotionControllers)
-			{
-				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AUnrealMultiplayerProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-			}
-			else
-			{*/
-				const FRotator SpawnRotation = GetControlRotation();
-				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+		if (bUsingMotionControllers)
+		{
+			const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
+			const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
+			GetWorld()->SpawnActor<AUnrealMultiplayerProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+		}
+		else
+		{
+			const FRotator SpawnRotation = GetControlRotation();
+			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr)
+				                               ? FP_MuzzleLocation->GetComponentLocation()
+				                               : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
 
-				//Set Spawn Collision Handling Override
-				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-				ActorSpawnParams.Instigator = this;
-				// spawn the projectile at the muzzle
-				GetWorld()->SpawnActor<AUnrealMultiplayerProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			//}
-		
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride =
+				ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+			ActorSpawnParams.Instigator = this;
+			// spawn the projectile at the muzzle
+			GetWorld()->SpawnActor<AUnrealMultiplayerProjectile>(ProjectileClass, SpawnLocation, SpawnRotation,
+			                                                     ActorSpawnParams);
+		}
 	}
 }
 
 bool AUnrealMultiplayerCharacter::ServerFire_Validate()
 {
-	return  true;
+	return true;
 }
+
+//void AUnrealMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+//{
+//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//
+//	DOREPLIFETIME(AUnrealMultiplayerCharacter, IsCarryingObjective);
+//}

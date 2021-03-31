@@ -40,8 +40,14 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Rotation")
 	float rotationSpeed;
 
+	UPROPERTY(ReplicatedUsing=OnRep_GuardState)
 	EAIState AIGuardState;
+
+	UFUNCTION()
+	void OnRep_GuardState();
+
 	void SetGuardState(EAIState NewState);
+
 
 	FTimerHandle TimerHandle_ResetOrientation;
 	UFUNCTION(BlueprintImplementableEvent, Category = "AI")
@@ -63,10 +69,7 @@ protected:
 	FRotator OrignalRotation;
 
 	void MoveToNextPatrolPoint();
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	
-
 };
